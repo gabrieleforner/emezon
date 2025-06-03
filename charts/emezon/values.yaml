@@ -1,0 +1,15 @@
+global:
+  gatewayHostname: localhost
+  apiReplicasCount: 1
+  imageRegistryUrl: ""
+  imageTag: latest
+mysql:
+  credentialsSecret: mysql-auth
+  replicasCount: 1
+  imageRegistryUrl: ""
+  imageTag: "8.0"
+  storageSize: "1Gi"
+redis:
+  imageRegistryUrl: ""
+  replicasCount: 1
+  imageTag: "latest"

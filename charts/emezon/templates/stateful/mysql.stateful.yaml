@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-db
+spec:
+  selector:
+    matchLabels:
+      app: mysql-db
+  serviceName: "mysql-db"
+  replicas: {{ .Values.mysql.replicasCount }}
+  template:
+    metadata:
+      labels:
+        app: mysql-db
+    spec:
+      containers:
+      - name: mysql-db
+        image: {{ .Values.mysql.imageRegistryUrl}}mysql:{{ .Values.mysql.imageTag }}
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.mysql.credentialsSecret }}
+                key: mysql-root-password
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.mysql.credentialsSecret }}
+                key: mysql-service-user
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.mysql.credentialsSecret }}
+                key: mysql-service-password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: shared-config
+                key: emezon-db-name
+        ports:
+        - containerPort: 3306
+          name: mysql-ingress
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.mysql.storageSize }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-db
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql-db
+  ports:
+  - port: 3306
+    targetPort: 3306

@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(Tilt) Debug user APIs",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9229,
+      "protocol": "inspector",
+      "restart": true,
+      "localRoot": "${workspaceFolder}/user_api",       // Adjust as needed
+      "remoteRoot": "/user_api/",                  // Must match container WORKDIR
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
