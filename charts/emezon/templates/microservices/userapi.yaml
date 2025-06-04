@@ -41,6 +41,11 @@ spec:
               configMapKeyRef:
                 name: shared-config
                 key: emezon-db-name
+          - name: JWT_SIGN_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.global.jwtKeySecret}}
+                key: jwt-signing-key
         resources:
           limits:
             memory: "128Mi"

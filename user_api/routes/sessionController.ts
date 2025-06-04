@@ -11,13 +11,14 @@
 */
 
 import { Router } from "express";
+import { loginService, logoutService } from "../services/sessionServices";
 
 let sessionHandlingRouter: Router = Router();
 
-sessionHandlingRouter.post('/login', (req, res) => { });
+sessionHandlingRouter.post('/login', (req, res) => loginService(req, res));
 sessionHandlingRouter.post('/signup', (req, res) => { });
 sessionHandlingRouter.get('/refresh', (req, res) => { });
 sessionHandlingRouter.get('/validate', (req, res) => { });
-sessionHandlingRouter.delete('/logout', (req, res) => { });
+sessionHandlingRouter.delete('/logout', (req, res) => logoutService(req, res));
 
 export default sessionHandlingRouter;
