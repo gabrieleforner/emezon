@@ -3,13 +3,16 @@ import { Redis } from "ioredis";
 
 export class ServiceContext {
   private static instance: ServiceContext;
-  private jwtPublicKey: any;
-  private jwtPrivateKey: any;
   private mysqlConnection: Pool;
   private redisConnection: Redis;
+  public jwtKey: string;
 
   private constructor() {
     try {
+      if(String(process.env.JWT_SIGN_KEY) == null) throw Error("JWT_SIGN_KEY is unset or invalid");
+
+      this.jwtKey = String(process.env.JWT_SIGN_KEY);
+
       if (String(process.env.MYSQL_HOSTNAME) == null) throw Error("MYSQL_HOSTNAME is not set or invalid");
       if (Number(process.env.MYSQL_PORT) == null) throw Error("MYSQL_PORT is not set or invalid");
       if (String(process.env.MYSQL_USER) == null) throw Error("MYSQL_USER is not set or invalid");
