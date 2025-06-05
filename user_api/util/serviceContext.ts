@@ -1,13 +1,18 @@
 import { Pool, RowDataPacket, createPool } from "mysql2/promise";
 import { Redis } from "ioredis";
 
-export class DatabaseConnection {
-  private static instance: DatabaseConnection;
+export class ServiceContext {
+  private static instance: ServiceContext;
   private mysqlConnection: Pool;
   private redisConnection: Redis;
+  public jwtKey: string;
 
   private constructor() {
     try {
+      if(String(process.env.JWT_SIGN_KEY) == null) throw Error("JWT_SIGN_KEY is unset or invalid");
+
+      this.jwtKey = String(process.env.JWT_SIGN_KEY);
+
       if (String(process.env.MYSQL_HOSTNAME) == null) throw Error("MYSQL_HOSTNAME is not set or invalid");
       if (Number(process.env.MYSQL_PORT) == null) throw Error("MYSQL_PORT is not set or invalid");
       if (String(process.env.MYSQL_USER) == null) throw Error("MYSQL_USER is not set or invalid");
@@ -52,11 +57,11 @@ export class DatabaseConnection {
     }
   }
 
-  public static getInstance(): DatabaseConnection {
-    if (!DatabaseConnection.instance) {
-      DatabaseConnection.instance = new DatabaseConnection();
+  public static getInstance(): ServiceContext {
+    if (!ServiceContext.instance) {
+      ServiceContext.instance = new ServiceContext();
     }
-    return DatabaseConnection.instance;
+    return ServiceContext.instance;
   }
 
   public async query<T = RowDataPacket>(sql: string, params?: any[]): Promise<T[]> {
@@ -69,4 +74,4 @@ export class DatabaseConnection {
   }
 }
 
-export default DatabaseConnection;
+export default ServiceContext;

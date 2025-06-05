@@ -3,6 +3,7 @@ global:
   apiReplicasCount: 1
   imageRegistryUrl: ""
   imageTag: latest
+  jwtKeySecret: jwt-secret
 mysql:
   credentialsSecret: mysql-auth
   replicasCount: 1
