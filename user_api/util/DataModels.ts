@@ -41,12 +41,19 @@ export interface User extends UserSignupInfos {
  *
  * @property clientHttpCode - The HTTP status code associated with the error, intended for client responses.
  */
-export class AccountError extends Error {
+export class AccountIdentityError extends Error {
   clientHttpCode: number;
 
   constructor(message: string, clientHttpCode: number) {
     super(message);
     this.clientHttpCode = clientHttpCode;
-    this.name = 'AccountError';
+    this.name = 'AccountIdentityError';
   }
 }
+
+/**
+ * Custom error class representing payment-related errors for an account.
+ * (e.g. Card already added, card required not registered, etc. )
+ * @extends Error
+ * @property {number} clientHttpCode - The HTTP status code to be sent to the client.
+*/
