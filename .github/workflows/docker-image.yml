@@ -21,4 +21,4 @@ jobs:
     - name: Build and push the Docker image
       run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/$ROOT_IMAGE_NAME:$USERAPI_TAG ${{ github.workspace }}/user_api
-  
+          docker push ${{ secrets.DOCKER_USERNAME }}/$ROOT_IMAGE_NAME:$USERAPI_TAG
