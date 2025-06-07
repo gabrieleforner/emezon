@@ -1,6 +1,6 @@
 # Emezon
 ## Overview
-This isa demo project for an E-commerce web app that uses Kubernetes to orchestrate the <br>
+This is a demo project for an E-commerce web app that uses Kubernetes to orchestrate the <br>
 components. This project doesn't provide any front-end for now (only the backend API endpoints), so to try
 this using cURL or Postman is the only way to interact with the app. <br>
 
