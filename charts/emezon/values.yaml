@@ -1,0 +1,5 @@
+microservices:
+  imageRegistry: ""
+  imageTag: dev
+  exposePort: 3000
+  

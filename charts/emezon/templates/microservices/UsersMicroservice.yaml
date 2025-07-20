@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: users-api-server
+spec:
+  selector:
+    matchLabels:
+      app: users-api-server
+  template:
+    metadata:
+      labels:
+        app: users-api-server
+    spec:
+      containers:
+        - name: api-server
+          image: {{.Values.microservices.imageRegistry }}emezon-user-service:{{ .Values.microservices.imageTag }}
+          ports:
+            - name: http-ingress
+              containerPort: {{ .Values.microservices.exposePort }}
+              hostPort: {{ .Values.microservices.exposePort }}
+              protocol: TCP
+            - name: debug-ingress
+              containerPort: 9229
+              hostPort: 9229
+              protocol: TCP
+          env:
+            - name: SERVER_PORT
+              value: {{ .Values.microservices.exposePort | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-api-server
+spec:
+  selector:
+    app: users-api-server
+  ports:
+    - name: http
+      port: {{ .Values.microservices.exposePort }}
+      targetPort: {{ .Values.microservices.exposePort }}
+    - name: debug
+      port: 9229
+      targetPort: 9229
