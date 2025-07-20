@@ -1,3 +1,14 @@
+# This manifest deploys the API server for the microservice.
+# It uses configurable environment variables and secrets for
+# database authentication and other runtime parameters.
+#
+# Required secret keys/values:
+# - users-service-username: The username for the service account used to connect to the microservice database
+# - users-service-password: The password for the service account used to connect to the microservice database
+#
+# Note: The service account credentials here function as a mock IAM mechanism,
+# similar to how a Cloud SQL service account is used for database authentication.
+
 apiVersion: apps/v1
 kind: Deployment
 
@@ -18,7 +29,6 @@ spec:
           ports:
             - name: http-ingress
               containerPort: {{ .Values.microservices.exposePort }}
-              hostPort: {{ .Values.microservices.exposePort }}
               protocol: TCP
             - name: debug-ingress
               containerPort: 9229
@@ -27,6 +37,16 @@ spec:
           env:
             - name: SERVER_PORT
               value: {{ .Values.microservices.exposePort | quote }}
+            - name: DB_SERVICE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{.Values.databases.auth.usersMicroserviceCredentials}}
+                  key: users-service-username
+            - name: DB_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{.Values.databases.auth.usersMicroserviceCredentials}}
+                  key: users-service-password
 ---
 apiVersion: v1
 kind: Service
@@ -42,3 +62,83 @@ spec:
     - name: debug
       port: 9229
       targetPort: 9229
+---
+
+# This manifest create the microservice-specific MySQL
+# database using a parametrized MySQL version and a
+# user-defined authentication credentials (that must
+# be defined in a secret referenced at databases.auth.usersMicroserviceCredentials)
+# with the following secret key/name values:
+# - users-root-password -> Root password for the microservice DB
+# - users-service-username -> Service account username used by the API server to access the DB
+# - users-service-password -> Service account password used by the API server to access the DB
+# the last two fields effectively act as a mock IAM mechanism (similar a Cloud SQL
+# service account) for authenticate the API server to the DB.
+
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: mysql-users
+spec:
+  serviceName: mysql-users
+  selector:
+    matchLabels:
+      app: mysql-users
+  template:
+    metadata:
+      labels:
+        app: mysql-users
+    spec:
+      containers:
+        - name: mysql-server
+          image: {{ .Values.databases.imageRegistry }}mysql:{{ .Values.databases.mysqlTag }}
+          resources:
+            requests:
+              cpu: {{ .Values.databases.resources.cpu }}
+              memory: {{ .Values.databases.resources.memory }}
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.auth.usersMicroserviceCredentials }}
+                  key: users-root-password
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.auth.usersMicroserviceCredentials }}
+                  key: users-service-username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.auth.usersMicroserviceCredentials }}
+                  key: users-service-password
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+          readinessProbe:
+            exec:
+              command:
+                - "mysqladmin"
+                - "ping"
+                - "-h"
+                - "localhost"
+                - "-u"
+                - "root"
+                - "-p$MYSQL_ROOT_PASSWORD"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          ports:
+            - containerPort: 3306
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{.Values.databases.resources.storageSize }}
+---

@@ -2,4 +2,13 @@ microservices:
   imageRegistry: ""
   imageTag: dev
   exposePort: 3000
-  
+databases:
+  imageRegistry: ""
+  mysqlTag: 8.0
+  exposePort: 3306
+  auth:
+    usersMicroserviceCredentials: mysql-auth
+  resources:
+    cpu: "500m"
+    memory: "512Mi"
+    storageSize: "1Gi"
