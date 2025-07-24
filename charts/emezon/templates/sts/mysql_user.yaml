@@ -1,0 +1,66 @@
+# Microservice-dedicated manifest for users microservice
+# running on MySQL. (Should mimic a managed instance, just like
+# a Cloud SQL one)
+
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: users-db
+spec:
+  serviceName: users-db
+  selector:
+    matchLabels:
+      component: users-db
+  template:
+    metadata:
+      labels:
+        component: users-db
+    spec:
+      containers:
+        - name: mysql
+          image: {{ .Values.databases.mysql_registry}}mysql:{{.Values.databases.mysql_version}}
+          ports:
+            - containerPort: {{ .Values.databases.mysql_expose_port }}
+          env:
+            - name: MYSQL_DATABASE
+              value: {{ .Values.databases.user_mysql.database_name | quote }}
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.user_mysql.credential_secret }}
+                  key: root-password
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.user_mysql.credential_secret }}
+                  key: service-username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.user_mysql.credential_secret }}
+                  key: service-password
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-pvc-user
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-pvc-user
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.databases.storage_size }}
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: users-db
+spec:
+  type: ClusterIP
+  selector:
+    component: users-db
+  ports:
+    - port: {{ .Values.databases.mysql_expose_port }}

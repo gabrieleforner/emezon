@@ -1,14 +1,21 @@
-microservices:
-  imageRegistry: ""
-  imageTag: dev
-  exposePort: 3000
 databases:
-  imageRegistry: ""
-  mysqlTag: 8.0
-  exposePort: 3306
-  auth:
-    usersMicroserviceCredentials: mysql-auth
-  resources:
-    cpu: "500m"
-    memory: "512Mi"
-    storageSize: "1Gi"
+    # Shared MySQL settings
+    mysql_version: "8.0"
+    mysql_registry: ""
+    mysql_expose_port: 3306
+    storage_size: "1Gi"
+    user_mysql:
+      database_name: user-db
+      credential_secret: user-auth
+    cart_mysql:
+      database_name: cart-db
+      credential_secret: cart-auth
+    inventory_mysql:
+      database_name: inventory-db
+      credential_secret: inventory-auth
+apiservers:
+  server_port: 80
+  image_tag: dev
+  image_registry: ""
+  user_service:
+    replicas: 1

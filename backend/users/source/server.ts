@@ -7,26 +7,31 @@
 
 import express, {Express} from 'express';
 import ServiceLogging from "./utils/ServiceLogging";
+import Services from "./utils/Services";
+import UserEntity from "./entities/UserEntity";
 
 async function startAPIServer() {
     const server: Express = express();
     const port: Number = Number(process.env.SERVER_PORT);
 
     try {
-        if(port === undefined) {
-            throw new Error('Missing server port or invalid value');
+        if(isNaN(Number(port))) {
+            throw new Error(`Missing server port or invalid value ${port}`);
         }
+
         server.use(express.json());
         server.get('/', async (req, res) => {
             res.json({ status: 'ccakrk' });
         });
+        await Services.getInstance();    // Init external services
 
         server.listen(port, function () {
             ServiceLogging.logInfo(`API Server running on port ${port}`);
         });
     }
     catch(e) {
-        ServiceLogging.logError(`Failed to start API server: ${e}`);
+        ServiceLogging.logError(`Failed to start API server: ${(e as Error).message}`);
+        process.exit(-1);
     }
 }
 startAPIServer();

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-microservice
+  labels:
+    app: user-microservice
+spec:
+  replicas: {{.Values.apiservers.user_service.replicas }}
+  selector:
+    matchLabels:
+      app: user-microservice
+  template:
+    metadata:
+      name: user-microservice
+      labels:
+        app: user-microservice
+    spec:
+      containers:
+        - name: user-microservice
+
+          image: {{ .Values.apiservers.image_registry }}emezon-user-service:{{ .Values.apiservers.image_tag }}
+          ports:
+            - containerPort: 9229
+              protocol: TCP
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: SERVER_PORT
+              value: {{.Values.apiservers.server_port | quote }}
+            - name: DB_HOST
+              value: users-db
+            - name: DB_PORT
+              value: {{ .Values.databases.mysql_expose_port | quote }}
+            - name: DB_SERVICE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.user_mysql.credential_secret }}
+                  key: service-username
+            - name: DB_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databases.user_mysql.credential_secret }}
+                  key: service-password
+            - name: DB_DATABASE
+              value: {{ .Values.databases.user_mysql.database_name }}
+          #readinessProbe:
+          #  httpGet:
+          #    port: {{ .Values.apiservers.server_port }}
+          #    path: /health
+          #  initialDelaySeconds: 10
+          #  successThreshold: 1
+          #  failureThreshold: 5
+          #  periodSeconds: 5
