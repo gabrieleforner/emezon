@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  user-mysql:
+      image: mysql:8.0
+      env_file: .env/.users.env
+      ports:
+        - "3306:3306"
+      volumes:
+        - users-db:/var/lib/mysql
+volumes:
+  users-db:
