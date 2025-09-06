@@ -1,26 +1,70 @@
 import {LoginRequestBody} from "@models/RequestBodyModels";
 import { randomUUID } from 'node:crypto';
+import { Response } from 'express';
 import jwt from 'jsonwebtoken';
 import redisClient from "@utils/RedisConnection";
 import * as process from "node:process";
+import {AuthenticationAPIError} from "@models/ErrorModels";
+import {SessionPayload} from "@models/SessionPayloadModel";
 
-const TOKEN_EXPIRE: number = 10 *60 * 60;
+const TOKEN_TTL: number = 10 *60 * 60;
+const TOKEN_PREFIX: string = "Bearer ";
 const JWT_SECRET: string = String(process.env.JWT_SECRET) ?? "EuufMmHiFAn69ojfc46EXf2jI296iOV3A8otm8SOqG568z90wH";
 
 export async function createSession(requestFields: LoginRequestBody): Promise<string> {
-    const token = jwt.sign({
-        email: requestFields.email,
-        jti: randomUUID()
-    }, JWT_SECRET, {
+    const tokenPayload: SessionPayload = {} as SessionPayload;
+    tokenPayload.email = requestFields.email;
+    tokenPayload.jti = randomUUID();
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, {
+        algorithm: "HS256",
+        issuer: "emezon-user-service",
         expiresIn: "10m",
         audience: 'authenticated-users'
     });
 
-    redisClient.set(`jwt:${requestFields.email}`, token, { EX: TOKEN_EXPIRE });
+    redisClient.addValueWithTTL(`jwt:session:${requestFields.email}`, token, TOKEN_TTL);
 
     return token;
 }
-export async function invalidateSession(bearerToken: string){
-
-
+export async function invalidateSession(bearerToken: string | undefined, res: Response) {
+    if(bearerToken == undefined) {
+        throw new AuthenticationAPIError(
+            401,
+            "ERR_MISSING_TOKEN",
+            "Missing session token, see OpenAPI spec"
+        );
+    }
+    if(bearerToken.length < TOKEN_PREFIX.length) {
+        throw new AuthenticationAPIError(
+            400,
+            "ERR_INVALID_TOKEN",
+            "Bad token format, see OpenAPI spec"
+        );
+    }
+    const jwtToken = bearerToken.substring(TOKEN_PREFIX.length, bearerToken.length);
+    let payload: SessionPayload = {} as SessionPayload;
+    try {
+        payload = jwt.verify(jwtToken, JWT_SECRET) as SessionPayload;
+    }
+    catch(e) {
+        throw new AuthenticationAPIError(
+            401,
+            "ERR_INVALID_TOKEN",
+            "Invalid token, see OpenAPI spec"
+        )
+    }
+    if(await redisClient.readValue(`jwt:session:${payload.email}`) == null) {
+        throw new AuthenticationAPIError(
+            404,
+            "ERR_SESSION_EXPIRED",
+            "This token refers to an expired session"
+        );
+    }
+    redisClient.deleteValue(`jwt:session:${payload.email}`);
+    res
+        .status(200)
+        .json({
+        success: true
+    })
 }

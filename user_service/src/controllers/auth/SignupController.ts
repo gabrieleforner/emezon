@@ -4,10 +4,10 @@ import sqlDataSource from "@utils/SQLConnection";
 import {User} from "@models/UserModel";
 import {AuthenticationAPIError} from "@models/ErrorModels";
 import {createHash} from "node:crypto";
+import sqlConnection from "@utils/SQLConnection";
 
 export default async function signupController(requestFields: SignupRequestBody, res: Response) {
-    const matchingEmailQB = sqlDataSource.getRepository(User).createQueryBuilder("email");
-    const matchingEmail = await matchingEmailQB.where("email = :email", { email: requestFields.email }).getOne();
+    const matchingEmail = await sqlConnection.getEntity(User, { email: requestFields.email });
     if (matchingEmail !== null) {
         throw new AuthenticationAPIError(409, "ERR_EMAIL_ALREADY_PRESENT", "This email is already in use");
     }
@@ -21,7 +21,7 @@ export default async function signupController(requestFields: SignupRequestBody,
     newUser.surname = requestFields.surname ?? "";
     newUser.username = requestFields.username ?? "";
 
-    sqlDataSource.getRepository(User).save(newUser);
+    sqlConnection.addNewEntity(User, newUser);
     res
         .status(200)
         .json({

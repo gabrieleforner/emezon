@@ -7,10 +7,11 @@ import {LoginRequestBody, SignupRequestBody} from "@models/RequestBodyModels";
 import loginController from "@controllers/auth/LoginController";
 import signupController from "@controllers/auth/SignupController";
 import checkSession from "@controllers/auth/SessionMiddleware";
+import {invalidateSession} from "@controllers/auth/SessionController";
 
 const authenticationRoutes: Router = Router();
 
-authenticationRoutes.post(`/login`, (req, res) => {
+authenticationRoutes.post(`/login`, async (req, res) => {
     try {
         const requestFields: LoginRequestBody = req.body as LoginRequestBody;
         if(requestFields.email == undefined || requestFields.email.length == 0 ) {
@@ -27,7 +28,7 @@ authenticationRoutes.post(`/login`, (req, res) => {
                 "Password is required to log in"
             );
         }
-        loginController(requestFields, res);
+        await loginController(requestFields, res);
     }
     catch (err) {
         if(err instanceof AuthenticationAPIError) {
@@ -49,7 +50,7 @@ authenticationRoutes.post(`/login`, (req, res) => {
         }
     }
 });
-authenticationRoutes.post(`/signup`, (req, res) => {
+authenticationRoutes.post(`/signup`, async (req, res) => {
     try {
         const requestFields: SignupRequestBody = req.body as SignupRequestBody;
         if(requestFields.email == undefined || requestFields.email.length == 0 ) {
@@ -66,7 +67,7 @@ authenticationRoutes.post(`/signup`, (req, res) => {
                 "Password is required to sign up"
             );
         }
-        signupController(requestFields, res);
+        await signupController(requestFields, res);
     }
     catch (err) {
         if(err instanceof AuthenticationAPIError) {
@@ -88,7 +89,7 @@ authenticationRoutes.post(`/signup`, (req, res) => {
         }
     }
 });
-authenticationRoutes.get(`/validate`, checkSession, (req, res) => {
+authenticationRoutes.get(`/validate`, checkSession, async (req, res) => {
     try {
         // TODO: Scrivere Validation sessione (ritorna email, tempo alla scadenza)
     }
@@ -112,9 +113,9 @@ authenticationRoutes.get(`/validate`, checkSession, (req, res) => {
         }
     }
 })
-authenticationRoutes.delete(`/logout`, checkSession, (req, res) => {
+authenticationRoutes.delete(`/logout`, checkSession, async (req, res) => {
     try {
-        // TODO: Scrivere Logout
+        await invalidateSession(req.header('Authorization'), res)
     }
     catch (err) {
         if(err instanceof AuthenticationAPIError) {

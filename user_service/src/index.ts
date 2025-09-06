@@ -4,9 +4,6 @@
  */
 
 import express from 'express';
-import sqlDataSource from "@utils/SQLConnection";
-import redisClient from "@utils/RedisConnection";
-import {SQL_DATABASE_DRIVER, SQL_DATABASE_HOST, SQL_DATABASE_PORT} from "@utils/CommonStrings";
 import authenticationRoutes from "@routes/AuthenticationRoutes";
 import userInfoRoutes from "@routes/UserInfoRoutes";
 
@@ -14,15 +11,6 @@ const serverPort: number = 3000;
 const serverHost: string = '0.0.0.0';
 
 (async ()=> {
-    await redisClient.connect().catch((e)=>{ console.error(e); });
-    await sqlDataSource.initialize()
-        .then(()=>{
-            console.log(`${SQL_DATABASE_DRIVER.toUpperCase()} database (${SQL_DATABASE_HOST}:${SQL_DATABASE_PORT}) connected`);
-        })
-        .catch((e)=>{
-            console.error(e);
-            process.exit(-1);
-        });
     const server = express();
     server.use(express.json());
     server.use(`/auth`, authenticationRoutes);

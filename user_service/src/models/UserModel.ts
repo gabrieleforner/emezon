@@ -8,11 +8,11 @@ import {Column, Entity, Index, PrimaryColumn} from "typeorm";
 @Entity()
 export class User {
     @Index()
-    @PrimaryColumn({ unique: true })
-    email?: string;
+    @PrimaryColumn({ unique: true, nullable:false })
+    email!: string;
 
-    @Column()
-    passwordHash?: string;
+    @Column({nullable:false})
+    passwordHash!: string;
 
     @Column()
     name?: string;

@@ -5,10 +5,10 @@ import {User} from "@models/UserModel";
 import {AuthenticationAPIError} from "@models/ErrorModels";
 import { createHash } from 'node:crypto';
 import {createSession} from "@controllers/auth/SessionController";
+import sqlConnection from "@utils/SQLConnection";
 
 export default async function loginController(requestFields: LoginRequestBody, res: Response) {
-    const matchingEmailsQB = sqlDataSource.getRepository(User).createQueryBuilder("email");
-    const matchingUser = await matchingEmailsQB.where("email = :email", { email: requestFields.email}).getOne();
+    const matchingUser = await sqlConnection.getEntity(User, { email: requestFields.email }) as User;
     if(matchingUser == null) {
         throw new AuthenticationAPIError(
             404,

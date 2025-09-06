@@ -5,28 +5,101 @@
            change SQL_DATABASE_DRIVER env var and install the driver with NPM)
 
  */
-import {DataSource} from "typeorm";
-import {User} from "@models/UserModel";
+
+import { DataSource, ObjectLiteral, EntityTarget, DeepPartial, FindOptionsWhere } from "typeorm";
+import { User } from "@models/UserModel";
+
 import {
     SQL_DATABASE_DRIVER,
-    SQL_DATABASE_HOST, SQL_DATABASE_NAME,
-    SQL_DATABASE_PASSWORD,
+    SQL_DATABASE_HOST,
     SQL_DATABASE_PORT,
-    SQL_DATABASE_USERNAME
-} from "@utils/CommonStrings";
+    SQL_DATABASE_USERNAME,
+    SQL_DATABASE_PASSWORD,
+    SQL_DATABASE_NAME,
+} from '@utils/CommonStrings'
 
-const sqlDataSource = new DataSource({
-    type: SQL_DATABASE_DRIVER as "mysql" | "postgres" | "mssql",
-    host: SQL_DATABASE_HOST,
-    port: SQL_DATABASE_PORT,
-    username: SQL_DATABASE_USERNAME,
-    password: SQL_DATABASE_PASSWORD,
-    database: SQL_DATABASE_NAME,
-    synchronize: true,
-    entities: [
-        User
-    ],
-    logging: true,
-});
+export class SQLConnection {
+    private dataSource: DataSource;
 
-export default sqlDataSource;
+    constructor() {
+        this.dataSource = new DataSource({
+            type: SQL_DATABASE_DRIVER as "mysql" | "postgres" | "mssql",
+            host: SQL_DATABASE_HOST,
+            port: SQL_DATABASE_PORT,
+            username: SQL_DATABASE_USERNAME,
+            password: SQL_DATABASE_PASSWORD,
+            database: SQL_DATABASE_NAME,
+            synchronize: true,
+            entities: [
+                User
+            ],
+            logging: false,
+        });
+        this.dataSource.initialize().catch(err => {
+            console.error("DB Init Error:", err)
+            process.exit(-1);
+        });
+        console.log("Server connected to SQL server");
+    }
+
+    // CREATE
+    public async addNewEntity<T extends ObjectLiteral>(
+        entity: EntityTarget<T>,
+        entityData: DeepPartial<T>
+    ): Promise<T | unknown> {
+        return this.dataSource.getRepository<T>(entity)
+            .save(entityData)
+            .catch(err => err as unknown);
+    }
+
+    // READ (find all)
+    public async getAllEntities<T extends ObjectLiteral>(
+        entity: EntityTarget<T>
+    ): Promise<T[] | unknown> {
+        return this.dataSource.getRepository<T>(entity)
+            .find()
+            .catch(err => err as unknown);
+    }
+
+    // READ (find by condition)
+    public async getEntity<T extends ObjectLiteral>(
+        entity: EntityTarget<T>,
+        where: FindOptionsWhere<T>
+    ): Promise<T | null | unknown> {
+        return this.dataSource.getRepository<T>(entity)
+            .findOneBy(where)
+            .catch(err => err as unknown);
+    }
+
+    // UPDATE
+    public async updateEntity<T extends ObjectLiteral>(
+        entity: EntityTarget<T>,
+        criteria: FindOptionsWhere<T>,
+        updateData: DeepPartial<T>
+    ): Promise<T | unknown> {
+        try {
+            const repo = this.dataSource.getRepository<T>(entity);
+            await repo.update(criteria, updateData);
+            return repo.findOneBy(criteria); // ritorna l'entità aggiornata
+        } catch (err) {
+            return err as unknown;
+        }
+    }
+
+    // DELETE
+    public async deleteEntity<T extends ObjectLiteral>(
+        entity: EntityTarget<T>,
+        criteria: FindOptionsWhere<T>
+    ): Promise<boolean | unknown> {
+        try {
+            const repo = this.dataSource.getRepository<T>(entity);
+            const result = await repo.delete(criteria);
+            return result.affected !== undefined && result.affected > 0;
+        } catch (err) {
+            return err as unknown;
+        }
+    }
+}
+
+const sqlConnection = new SQLConnection();
+export default sqlConnection;
