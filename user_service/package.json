@@ -11,6 +11,7 @@
     "start:dev": "ts-node --project ./tsconfig.dev.json -r tsconfig-paths/register ./src/index.ts"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
@@ -20,8 +21,10 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "amqplib": "^0.10.9",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "kafkajs": "^2.2.4",
     "mysql2": "^3.14.4",
     "redis": "^5.8.2",
     "reflect-metadata": "^0.2.2",
