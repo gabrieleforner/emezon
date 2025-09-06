@@ -35,8 +35,8 @@ export class SQLConnection {
             ],
             logging: false,
         });
-        this.dataSource.initialize().catch(err => {
-            console.error("DB Init Error:", err)
+        this.dataSource.initialize().catch(error => {
+            console.error("DB Init Error:", error)
             process.exit(-1);
         });
         console.log("Server connected to SQL server");
@@ -49,7 +49,7 @@ export class SQLConnection {
     ): Promise<T | unknown> {
         return this.dataSource.getRepository<T>(entity)
             .save(entityData)
-            .catch(err => err as unknown);
+            .catch(error => error as unknown);
     }
 
     // READ (find all)
@@ -58,7 +58,7 @@ export class SQLConnection {
     ): Promise<T[] | unknown> {
         return this.dataSource.getRepository<T>(entity)
             .find()
-            .catch(err => err as unknown);
+            .catch(error => error as unknown);
     }
 
     // READ (find by condition)
@@ -68,7 +68,7 @@ export class SQLConnection {
     ): Promise<T | null | unknown> {
         return this.dataSource.getRepository<T>(entity)
             .findOneBy(where)
-            .catch(err => err as unknown);
+            .catch(error => error as unknown);
     }
 
     // UPDATE
@@ -81,8 +81,8 @@ export class SQLConnection {
             const repo = this.dataSource.getRepository<T>(entity);
             await repo.update(criteria, updateData);
             return repo.findOneBy(criteria); // ritorna l'entità aggiornata
-        } catch (err) {
-            return err as unknown;
+        } catch (error) {
+            return error as unknown;
         }
     }
 
@@ -95,8 +95,8 @@ export class SQLConnection {
             const repo = this.dataSource.getRepository<T>(entity);
             const result = await repo.delete(criteria);
             return result.affected !== undefined && result.affected > 0;
-        } catch (err) {
-            return err as unknown;
+        } catch (error) {
+            return error as unknown;
         }
     }
 }

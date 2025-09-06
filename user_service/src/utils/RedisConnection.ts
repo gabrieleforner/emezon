@@ -18,10 +18,10 @@ export class RedisConnection {
         this.client.on('connect', () => {
             console.log(`Server connected to Redis (${this.redisConnectionString})`)
         })
-        this.client.on('error', (err: Error)=>{
+        this.client.on('error', (error: Error)=>{
             console.error(`Failed to connect to redis server: ${REDIS_HOST}`);
-            console.error(`Error: ${err.message}`);
-            console.error(err.stack);
+            console.error(`Error: ${error.message}`);
+            console.error(error.stack);
             process.exit(-1);
         })
         this.client.connect();

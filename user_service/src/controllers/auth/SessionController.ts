@@ -27,40 +27,8 @@ export async function createSession(requestFields: LoginRequestBody): Promise<st
 
     return token;
 }
-export async function invalidateSession(bearerToken: string | undefined, res: Response) {
-    if(bearerToken == undefined) {
-        throw new AuthenticationAPIError(
-            401,
-            "ERR_MISSING_TOKEN",
-            "Missing session token, see OpenAPI spec"
-        );
-    }
-    if(bearerToken.length < TOKEN_PREFIX.length) {
-        throw new AuthenticationAPIError(
-            400,
-            "ERR_INVALID_TOKEN",
-            "Bad token format, see OpenAPI spec"
-        );
-    }
-    const jwtToken = bearerToken.substring(TOKEN_PREFIX.length, bearerToken.length);
-    let payload: SessionPayload = {} as SessionPayload;
-    try {
-        payload = jwt.verify(jwtToken, JWT_SECRET) as SessionPayload;
-    }
-    catch(e) {
-        throw new AuthenticationAPIError(
-            401,
-            "ERR_INVALID_TOKEN",
-            "Invalid token, see OpenAPI spec"
-        )
-    }
-    if(await redisClient.readValue(`jwt:session:${payload.email}`) == null) {
-        throw new AuthenticationAPIError(
-            404,
-            "ERR_SESSION_EXPIRED",
-            "This token refers to an expired session"
-        );
-    }
+
+export async function invalidateSession(bearerToken: string | undefined, payload: SessionPayload, res: Response) {
     redisClient.deleteValue(`jwt:session:${payload.email}`);
     res
         .status(200)
