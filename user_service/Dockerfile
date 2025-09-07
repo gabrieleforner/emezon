@@ -6,4 +6,5 @@ RUN npm install
 COPY tsconfig.json .
 COPY nodemon.json .
 COPY . .
-RUN npm run serve
+RUN npm run build
+CMD ["npm", "run", "start"]

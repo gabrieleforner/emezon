@@ -5,8 +5,13 @@
            change SQL_DATABASE_DRIVER env var and install the driver with NPM)
 
  */
-
-import { DataSource, ObjectLiteral, EntityTarget, DeepPartial, FindOptionsWhere } from "typeorm"
+import {
+    DataSource,
+    ObjectLiteral,
+    EntityTarget,
+    DeepPartial,
+    FindOptionsWhere
+} from "typeorm"
 import { User } from "@models/UserModel"
 
 import {
@@ -30,9 +35,7 @@ export class SQLConnection {
             password: SQL_DATABASE_PASSWORD,
             database: SQL_DATABASE_NAME,
             synchronize: true,
-            entities: [
-                User
-            ],
+            entities: [User],
             logging: false,
         })
         this.dataSource.initialize().catch(error => {
@@ -75,12 +78,12 @@ export class SQLConnection {
     public async updateEntity<T extends ObjectLiteral>(
         entity: EntityTarget<T>,
         criteria: FindOptionsWhere<T>,
-        updateData: DeepPartial<T>
+        updateData: DeepPartial<T>   // <-- torna DeepPartial
     ): Promise<T | unknown> {
         try {
             const repo = this.dataSource.getRepository<T>(entity)
-            await repo.update(criteria, updateData)
-            return repo.findOneBy(criteria) // ritorna l'entità aggiornata
+            await repo.update(criteria, updateData as any) // cast se TS si lamenta
+            return repo.findOneBy(criteria)
         } catch (error) {
             return error as unknown
         }
@@ -94,7 +97,7 @@ export class SQLConnection {
         try {
             const repo = this.dataSource.getRepository<T>(entity)
             const result = await repo.delete(criteria)
-            return result.affected !== undefined && result.affected > 0
+            return (result.affected ?? 0) > 0
         } catch (error) {
             return error as unknown
         }
