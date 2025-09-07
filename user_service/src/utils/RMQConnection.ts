@@ -1,1 +1,1 @@
-import aqmp from 'amqplib';
+import aqmp from 'amqplib'

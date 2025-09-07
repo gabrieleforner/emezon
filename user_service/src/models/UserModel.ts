@@ -3,23 +3,23 @@
     @brief This file define TypeORM model for users.
  */
 
-import {Column, Entity, Index, PrimaryColumn} from "typeorm";
+import {Column, Entity, Index, PrimaryColumn} from "typeorm"
 
 @Entity()
 export class User {
     @Index()
     @PrimaryColumn({ unique: true, nullable:false })
-    email!: string;
+    email!: string
 
     @Column({nullable:false})
-    passwordHash!: string;
+    passwordHash!: string
 
     @Column()
-    name?: string;
+    name?: string
 
     @Column()
-    surname?: string;
+    surname?: string
 
     @Column()
-    username?: string;
+    username?: string
 }

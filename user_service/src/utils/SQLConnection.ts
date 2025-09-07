@@ -6,8 +6,8 @@
 
  */
 
-import { DataSource, ObjectLiteral, EntityTarget, DeepPartial, FindOptionsWhere } from "typeorm";
-import { User } from "@models/UserModel";
+import { DataSource, ObjectLiteral, EntityTarget, DeepPartial, FindOptionsWhere } from "typeorm"
+import { User } from "@models/UserModel"
 
 import {
     SQL_DATABASE_DRIVER,
@@ -19,7 +19,7 @@ import {
 } from '@utils/CommonStrings'
 
 export class SQLConnection {
-    private dataSource: DataSource;
+    private dataSource: DataSource
 
     constructor() {
         this.dataSource = new DataSource({
@@ -34,12 +34,12 @@ export class SQLConnection {
                 User
             ],
             logging: false,
-        });
+        })
         this.dataSource.initialize().catch(error => {
             console.error("DB Init Error:", error)
-            process.exit(-1);
-        });
-        console.log("Server connected to SQL server");
+            process.exit(-1)
+        })
+        console.log("Server connected to SQL server")
     }
 
     // CREATE
@@ -49,7 +49,7 @@ export class SQLConnection {
     ): Promise<T | unknown> {
         return this.dataSource.getRepository<T>(entity)
             .save(entityData)
-            .catch(error => error as unknown);
+            .catch(error => error as unknown)
     }
 
     // READ (find all)
@@ -58,7 +58,7 @@ export class SQLConnection {
     ): Promise<T[] | unknown> {
         return this.dataSource.getRepository<T>(entity)
             .find()
-            .catch(error => error as unknown);
+            .catch(error => error as unknown)
     }
 
     // READ (find by condition)
@@ -68,7 +68,7 @@ export class SQLConnection {
     ): Promise<T | null | unknown> {
         return this.dataSource.getRepository<T>(entity)
             .findOneBy(where)
-            .catch(error => error as unknown);
+            .catch(error => error as unknown)
     }
 
     // UPDATE
@@ -78,11 +78,11 @@ export class SQLConnection {
         updateData: DeepPartial<T>
     ): Promise<T | unknown> {
         try {
-            const repo = this.dataSource.getRepository<T>(entity);
-            await repo.update(criteria, updateData);
-            return repo.findOneBy(criteria); // ritorna l'entità aggiornata
+            const repo = this.dataSource.getRepository<T>(entity)
+            await repo.update(criteria, updateData)
+            return repo.findOneBy(criteria) // ritorna l'entità aggiornata
         } catch (error) {
-            return error as unknown;
+            return error as unknown
         }
     }
 
@@ -92,14 +92,14 @@ export class SQLConnection {
         criteria: FindOptionsWhere<T>
     ): Promise<boolean | unknown> {
         try {
-            const repo = this.dataSource.getRepository<T>(entity);
-            const result = await repo.delete(criteria);
-            return result.affected !== undefined && result.affected > 0;
+            const repo = this.dataSource.getRepository<T>(entity)
+            const result = await repo.delete(criteria)
+            return result.affected !== undefined && result.affected > 0
         } catch (error) {
-            return error as unknown;
+            return error as unknown
         }
     }
 }
 
-const sqlConnection = new SQLConnection();
-export default sqlConnection;
+const sqlConnection = new SQLConnection()
+export default sqlConnection
