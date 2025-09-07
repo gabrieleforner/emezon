@@ -6,17 +6,44 @@ services:
     env_file: .env/.rabbitmq.env
     ports:
       - "5672:5672"
-  
+
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 10s
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
   user-mysql:
-      image: mysql:8.0
-      env_file: .env/.users.env
-      ports:
-        - "3306:3306"
-      volumes:
-        - users-db:/var/lib/mysql
+    image: mysql:8.0
+    env_file: .env/.users.env
+    ports:
+      - "3306:3306"
+    volumes:
+      - users-db:/var/lib/mysql
+    healthcheck:
+      start_period: 10s
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  user-service:
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    env_file: .env/.users.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      user-mysql:
+        condition: service_healthy
+
 volumes:
   users-db:
