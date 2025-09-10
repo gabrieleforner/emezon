@@ -17,3 +17,8 @@ export const SQL_DATABASE_NAME     = process.env.SQL_DATABASE_NAME     ?? "datab
 // Redis configuration variables
 export const REDIS_HOST = process.env.REDIS_HOST ?? "localhost"
 export const REDIS_PORT = Number(process.env.REDIS_PORT ?? 6379)
+
+// Application Roles
+export const ADMIN_ROLE = "admin"
+export const SELLER_ROLE = "seller"
+export const USER_ROLE = "user"

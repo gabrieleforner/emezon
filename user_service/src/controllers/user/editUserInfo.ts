@@ -1,11 +1,10 @@
 import { SessionPayload } from "@models/SessionPayloadModel"
 import { User } from "@models/UserModel"
 import { Response } from "express"
-import sqlConnection from "@utils/SQLConnection"
 import { UserAPIError } from "@models/ErrorModels"
 import { createHash } from "crypto"
 import { invalidateSession } from "@controllers/auth/SessionController"
-import redisConnection from "@utils/RedisConnection"
+import Services from "@utils/Services"
 
 async function editUserInfoController(sessionPayload: SessionPayload, field: string, body: any, res: Response) {
     try {
@@ -17,7 +16,7 @@ async function editUserInfoController(sessionPayload: SessionPayload, field: str
                 "You must define the field you want to patch"
             )
         }
-        const userInfo: User = await sqlConnection.getEntity(User, { email: sessionPayload.email }) as User
+        const userInfo: User = await Services.getInstance().getEntity(User, { email: sessionPayload.email }) as User
         const newFieldValue: string = body[field]
 
         // Check if the new field value exists in the body
@@ -37,9 +36,9 @@ async function editUserInfoController(sessionPayload: SessionPayload, field: str
             userInfo[key] = newFieldValue;
         }
         // TODO: Produce PubSub Event "EmailChanged"
-        sqlConnection.updateEntity(User, { email: sessionPayload.email}, userInfo);
+        Services.getInstance().updateEntity(User, { email: sessionPayload.email}, userInfo);
         if(field == "email") {
-            redisConnection.deleteValue(`jwt:session:${sessionPayload.email}`);
+            Services.getInstance().deleteRedisValue(`jwt:session:${sessionPayload.email}`);
         }
         res.status(200).json({ success: true });
 

@@ -11,15 +11,18 @@ export class User {
     @PrimaryColumn({ unique: true, nullable:false })
     email!: string
 
-    @Column({nullable:false})
+    @Column({ nullable:false })
     passwordHash!: string
+
+    @Column({ nullable: false, unique: true })
+    username!: string
+
+    @Column({ type: 'simple-json'})
+    roles!: string[]
 
     @Column()
     name?: string
 
     @Column()
     surname?: string
-
-    @Column()
-    username?: string
 }

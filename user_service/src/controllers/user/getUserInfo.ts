@@ -1,11 +1,11 @@
 import { UserAPIError } from "@models/ErrorModels"
 import { SessionPayload } from "@models/SessionPayloadModel"
 import { User } from "@models/UserModel"
-import sqlConnection from "@utils/SQLConnection"
+import Services from "@utils/Services"
 import { Response } from "express"
 
 export default async function getInformationController(sessionPayload: SessionPayload, field: string, res: Response) {
-    const userInfo: User = await sqlConnection.getEntity(User, { email: sessionPayload.email }) as User
+    const userInfo: User = await Services.getInstance().getEntity(User, { email: sessionPayload.email }) as User
     if (field == undefined) {
         // Return ALL user informations
         res

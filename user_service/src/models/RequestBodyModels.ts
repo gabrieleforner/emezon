@@ -4,8 +4,9 @@ export interface LoginRequestBody {
 }
 export interface SignupRequestBody {
     email: string
+    username: string
     password: string
+    surname: string
     name?: string
-    surname?: string
-    username?: string
+    accountType: string
 }

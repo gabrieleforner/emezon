@@ -60,6 +60,13 @@ authenticationRoutes.post(`/signup`, async (req, res) => {
                 "Email is required to sign up"
             )
         }
+        if(requestFields.username == undefined || requestFields.username.length == 0 ) {
+            throw new AuthenticationAPIError(
+                400,
+                "ERR_MISSING_USERNAME",
+                "Unique username is required to sign up"
+            )
+        }
         if(requestFields.password == undefined || requestFields.password.length == 0 ) {
             throw new AuthenticationAPIError(
                 400,

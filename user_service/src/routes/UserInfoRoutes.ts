@@ -2,9 +2,9 @@
 
  */
 import checkSessionMiddleware from '@controllers/auth/SessionMiddleware'
-import deleteAccountController from '@controllers/user_info/deleteAccount'
-import editUserInfoController from '@controllers/user_info/editUserInfo'
-import getInformationController from '@controllers/user_info/getUserInfo'
+import deleteAccountController from '@controllers/user/deleteAccount'
+import editUserInfoController from '@controllers/user/editUserInfo'
+import getInformationController from '@controllers/user/getUserInfo'
 import { Router } from 'express'
 
 const userInfoRoutes: Router = Router()

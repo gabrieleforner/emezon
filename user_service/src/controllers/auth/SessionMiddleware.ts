@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { AuthenticationAPIError } from '@models/ErrorModels'
 import process from "node:process"
-import redisConnection from '@utils/RedisConnection'
 import jwt from 'jsonwebtoken'
 import { SessionPayload } from '@models/SessionPayloadModel'
+import Services from '@utils/Services'
 
 const JWT_HEADER_PREFIX = 'Bearer '
 const JWT_SECRET: string = String(process.env.JWT_SECRET) ?? "EuufMmHiFAn69ojfc46EXf2jI296iOV3A8otm8SOqG568z90wH"
@@ -45,7 +45,7 @@ async function checkSessionMiddleware(req: Request, res: Response, next: NextFun
             )
         }
         // TODO: Check su Redis
-        const onRedisToken = await redisConnection.readValue(`jwt:session:${payload.email}`)
+        const onRedisToken = await Services.getInstance().readRedisValue(`jwt:session:${payload.email}`)
         if (onRedisToken == null) {
             throw new AuthenticationAPIError(
                 404,
