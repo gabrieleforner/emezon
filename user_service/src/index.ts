@@ -35,9 +35,9 @@ const serverHost: string = "0.0.0.0";
         })
         .then(()=>{
             console.log(`Adminstrator default account:`)
-            console.log(`Email: ${DEFADMIN_EMAIL} `)
-            console.log(`Username: ${DEFADMIN_USERNAME}`)
-            console.log(`Password: ${DEFADMIN_PASSWORD}`)
+            console.log(`\tEmail: ${DEFADMIN_EMAIL} `)
+            console.log(`\tUsername: ${DEFADMIN_USERNAME}`)
+            console.log(`\tPassword: ${DEFADMIN_PASSWORD}`)
         })
         .catch((err: Error) => {
             throw err
@@ -45,8 +45,9 @@ const serverHost: string = "0.0.0.0";
     }
     catch (error) {
         console.error(`Failed to connect to external services`)
-        console.error(`Error message: ${(error as Error).message}`)
-        console.error(`Error originated from: ${(error as Error).stack}`)
+        console.error(`\tError message: ${(error as Error).message}`)
+        console.error(`\tError originated from: ${(error as Error).stack}`)
+        process.exit(-1)
     }
 
     const server = express()
@@ -57,8 +58,8 @@ const serverHost: string = "0.0.0.0";
     server.listen(serverPort, serverHost, (e)=>{
         if(e instanceof Error) {
             console.error(`Failed to start Express server`)
-            console.error(`Error message: ${e.message}`)
-            console.error(`Error originated from: ${e.stack}`)
+            console.error(`\tError message: ${e.message}`)
+            console.error(`\tError originated from: ${e.stack}`)
             process.exit(-1)
         }
         console.log(`Server started successfully (http://${serverHost}:${serverPort}/)`)

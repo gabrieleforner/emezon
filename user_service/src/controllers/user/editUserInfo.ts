@@ -9,9 +9,9 @@ import Services from "@utils/Services"
 async function editUserInfoController(sessionPayload: SessionPayload, field: string, body: any, res: Response) {
     try {
         // Check if the field to patch has been defined
-       if (field == undefined || field.length < ("name".length)) {
+        if (field == undefined || field.length < ("name".length)) {
             throw new UserAPIError(
-                400, 
+                400,
                 "ERR_MISSING_FIELD",
                 "You must define the field you want to patch"
             )
@@ -20,24 +20,34 @@ async function editUserInfoController(sessionPayload: SessionPayload, field: str
         const newFieldValue: string = body[field]
 
         // Check if the new field value exists in the body
-        if(newFieldValue == undefined || newFieldValue.length == 0) {
+        if (newFieldValue == undefined || newFieldValue.length == 0) {
             throw new UserAPIError(
                 400,
                 "ERR_MISSING_FIELD_VALUE",
                 "You must define the new field value"
             )
         }
-        
-        if(field == "password") {
+
+        if (field === "roles") {
+            if (!Array.isArray(body.roles)) {
+                throw new UserAPIError(
+                    400,
+                    "ERR_INVALID_ROLES",
+                    "Roles must be an array of strings"
+                )
+            }
+            userInfo.roles = body.roles
+        } else if (field === "password") {
             const newPassword = createHash('sha256').update(newFieldValue).digest('hex');
-            userInfo.passwordHash = newPassword;
+            userInfo.passwordHash = newPassword
         } else {
-            const key = field as keyof User;
-            userInfo[key] = newFieldValue;
+            const key = field as keyof User
+            userInfo[key] = newFieldValue as any
         }
+
         // TODO: Produce PubSub Event "EmailChanged"
-        Services.getInstance().updateEntity(User, { email: sessionPayload.email}, userInfo);
-        if(field == "email") {
+        Services.getInstance().updateEntity(User, { email: sessionPayload.email }, userInfo);
+        if (field == "email") {
             Services.getInstance().deleteRedisValue(`jwt:session:${sessionPayload.email}`);
         }
         res.status(200).json({ success: true });
