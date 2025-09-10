@@ -18,6 +18,13 @@ export const SQL_DATABASE_NAME     = process.env.SQL_DATABASE_NAME     ?? "datab
 export const REDIS_HOST = process.env.REDIS_HOST ?? "localhost"
 export const REDIS_PORT = Number(process.env.REDIS_PORT ?? 6379)
 
+// Kafka config
+export const KAFKA_HOST = process.env.KAFKA_HOST ?? "localhost"
+export const KAFKA_PORT = Number(process.env.KAFKA_PORT) ?? 9092
+
+// Kafka Topics
+export const USER_EVENTS_TOPIC = process.env.USER_EVENTS_TOPIC ?? "user-events"
+
 // Application Roles
 export const ADMIN_ROLE = "admin"
 export const SELLER_ROLE = "seller"

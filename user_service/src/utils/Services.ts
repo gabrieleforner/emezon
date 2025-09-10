@@ -7,6 +7,8 @@ import {
     SQL_DATABASE_NAME,
     REDIS_HOST,
     REDIS_PORT,
+    KAFKA_PORT,
+    KAFKA_HOST,
 } from '@utils/CommonStrings'
 import {
     DataSource,
@@ -17,13 +19,17 @@ import {
 } from "typeorm"
 import { User } from "@models/UserModel"
 import { createClient, RedisClientType } from 'redis'
+import { Consumer, Kafka, Producer } from 'kafkajs'
 
 class Services {
     private static instance: Services
     private dataSource!: DataSource
-    private client!: RedisClientType
-    private redisConnectionString: string = `redis://${REDIS_HOST}:${REDIS_PORT}`
+    private redisClient!: RedisClientType
+    
+    private kafkaCluster!: Kafka
+    private kafkaProducer!: Producer
 
+    private redisConnectionString: string = `redis://${REDIS_HOST}:${REDIS_PORT}`
     private constructor() { }
     public static getInstance() {
         if (!this.instance) {
@@ -32,6 +38,19 @@ class Services {
         return this.instance
     }
     public async init() {
+        // Setup Apache Kafka
+        this.kafkaCluster = new Kafka({
+            clientId: "user-microservice",
+            brokers: [
+                `${KAFKA_HOST}:${KAFKA_PORT}`
+            ],
+        })
+        this.kafkaProducer = this.kafkaCluster.producer()
+        await this.kafkaProducer.connect()
+            .catch((e: Error)=>{ throw e })
+            .then(()=>{ console.log(`Server connected to Kafka (as producer) (kafka://${KAFKA_HOST}:${KAFKA_PORT})`) })
+
+        // Setup SQL Database connection
         this.dataSource = new DataSource({
             type: SQL_DATABASE_DRIVER as "mysql" | "postgres" | "mssql",
             host: SQL_DATABASE_HOST,
@@ -48,20 +67,31 @@ class Services {
             process.exit(-1)
         })
         console.log("Server connected to SQL server")
-        this.client = createClient({
+        this.redisClient = createClient({
             url: this.redisConnectionString,
         })
-        this.client.on('connect', () => {
+        this.redisClient.on('connect', () => {
             console.log(`Server connected to Redis (${this.redisConnectionString})`)
         })
-        this.client.on('error', (error: Error) => {
+        this.redisClient.on('error', (error: Error) => {
             console.error(`Failed to connect to redis server: ${REDIS_HOST}`)
             console.error(`Error: ${error.message}`)
             console.error(error.stack)
             process.exit(-1)
         })
-        await this.client.connect()
+        await this.redisClient.connect()
         console.log("Server connected to Redis server")
+    }
+
+
+    // Kafka produce event
+    public async produceKafkaEvent(topic: string, value: any) {
+        await this.kafkaProducer.send({
+            topic: topic,
+            messages: [
+                { value: value }
+            ],
+        })
     }
 
     // TypeORM CRUD
@@ -105,28 +135,28 @@ class Services {
 
     // Redis CRUD
     public async addRedisValue(key: string, value: any) {
-        await this.client.set(key, value)
+        await this.redisClient.set(key, value)
     }
     public async addRedisValueWithTTL(key: string, value: any, ttlMilliseconds: number) {
-        await this.client.set(key, value, { EX: ttlMilliseconds })
+        await this.redisClient.set(key, value, { EX: ttlMilliseconds })
     }
     // Read
     public async readRedisValue(key: string) {
-        return await this.client.get(key)
+        return await this.redisClient.get(key)
     }
     // Update
     public async updateRedisValue(key: string, value: any) {
-        const ttl = await this.client.ttl(key)
+        const ttl = await this.redisClient.ttl(key)
         if (ttl > 0) {
-            await this.client.set(key, value, { EX: ttl })
+            await this.redisClient.set(key, value, { EX: ttl })
         }
         else {
-            await this.client.set(key, value)
+            await this.redisClient.set(key, value)
         }
     }
     // Delete
     public async deleteRedisValue(key: string) {
-        await this.client.del(key)
+        await this.redisClient.del(key)
     }
 };
 export default Services;

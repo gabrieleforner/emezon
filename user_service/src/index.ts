@@ -50,6 +50,8 @@ const serverHost: string = "0.0.0.0";
         process.exit(-1)
     }
 
+    Services.getInstance().produceKafkaEvent('user-events', 'GenericKafkaEvent')
+
     const server = express()
     server.use(express.json())
     server.use(`/auth`, authenticationRoutes)
